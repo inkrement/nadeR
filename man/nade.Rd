@@ -2,19 +2,21 @@
 % Please edit documentation in R/nade.R
 \name{nade}
 \alias{nade}
-\title{Run nade}
+\title{Create a New \code{nade} Object}
 \usage{
-nade(txts)
-}
-\arguments{
-\item{texts}{vector of strings.}
+nade()
 }
 \value{
-A dataframe with intensities for eight basic emotions.
+A new \code{nade} object
 }
 \description{
-applies Nade
+Create a new \code{nade} model. The avalable methods are:
+\itemize{
+\item \code{load} - load the model
+}
 }
 \examples{
-hello(c('I love pizza'))
+model <- nade()
+model$load()
+
 }
