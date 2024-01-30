@@ -1,14 +1,14 @@
 Package: nadeR
 Title: A package to infer basic emotions from social media messages
-Version: 0.0.0.9001
+Version: 0.0.0.9002
 Authors@R: 
     c(
         person(given="Christian", family="Hotz-Behofsits", email="chris@hotz-behofsits.com", role = c("aut", "cre")),
         person(given="Daniel", family="Winkler", email="dw@dwinkler.org", role = "aut")
     )
 Description: This package allows to infer basic emotions from social media messages.
-Depends: jsonlite, fastTextR, reshape2, lightgbm
-Requires: jsonlite, fastTextR, reshape2, lightgbm
+Depends: jsonlite, fastText, reshape2, lightgbm
+Requires: jsonlite, fastText, reshape2, lightgbm
 License: MIT
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

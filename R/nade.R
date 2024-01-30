@@ -14,24 +14,6 @@ clip_bnd <- function(vec, UB=1, LB=0) {
 }
 
 # ---------------------------------------------------------------------
-# sort_by_emojis_baseR
-# ====================
-#' @title Sort by emojis
-#' @description Sort by emojis
-#' 
-#' @param emoji_scores_raw raw emoji scores
-#' @param emoji_lookup emoji lookup table
-#' 
-#' @return A data frame of sorted emojis
-#' 
-sort_by_emojis_baseR <- function(emoji_scores_raw, emoji_lookup) {
-  merged_data <- merge(emoji_scores_raw, emoji_lookup, by = 'label', all = FALSE)
-  sorted_data <- merged_data[order(merged_data$id.x, merged_data$id.y), ]
-  selected_data <- sorted_data[, c("id.x", "id.y", "prob")]
-  return(selected_data)
-}
-
-# ---------------------------------------------------------------------
 # long_to_wide_baseR
 # ==================
 #' @title Long to wide
@@ -45,7 +27,7 @@ sort_by_emojis_baseR <- function(emoji_scores_raw, emoji_lookup) {
 long_to_wide_baseR <- function(sorted_preds) {
   wide_data <- reshape2::dcast(
     data = sorted_preds,
-    formula = id.x ~ id.y,
+    formula = id ~ int_label,
     value.var = "prob"
   )
   wide_data <- wide_data[,-1]  # Remove the first column (id.x)
@@ -95,6 +77,43 @@ nadeR_load <- function() {
     model
 }
 
+# hotfix
+#
+#' @importFrom fastText fasttext_interface
+#' 
+ft_hotfix_predict <- function(txts) {
+    tmp_x_data = tempfile(fileext = '.txt')
+    tmp_out_data = tempfile(fileext = '.txt')
+    writeLines(text = txts, con = tmp_x_data, sep = '\n')
+
+    list_params <- list(
+        command = 'predict-prob',
+        model = system.file("data", "nade_250k_hp.ftz", package = "nadeR"),
+        test_data = tmp_x_data,
+        k = 151,
+        th = 0.0
+    )
+
+    res = fasttext_interface(
+        list_params,
+        path_output = tmp_out_data
+    )
+
+    tmp_predictions <- readLines(tmp_out_data)
+
+    tmp_predictions
+
+    predictions_scores <- do.call(rbind, lapply(tmp_predictions, function(predictions) {
+          data.frame( 
+            label = unlist(strsplit(predictions, split=' '))[seq(1,302,2)],
+            prob = unlist(strsplit(predictions, split=' '))[seq(2,302,2)]) 
+        }
+     )
+     )
+    predictions_scores$id <- rep(1:length(tmp_predictions), each = 151)
+    return(predictions_scores)
+}
+
 
 # ---------------------------------------------------------------------
 # nadeR_predict
@@ -111,7 +130,7 @@ nadeR_load <- function() {
 #' model <- nadeR_load()
 #' nadeR_predict(model, "I am happy")
 #' 
-#' @importFrom fastTextR ft_predict
+##' @importFrom fastTextR ft_predict
 #' @export 
 nadeR_predict <- function(model, txts) {
     # preprocessing
@@ -119,12 +138,12 @@ nadeR_predict <- function(model, txts) {
     txts <- gsub("\r?\n|\r", " ", txts)
     
     # apply fasttext
-    emoji_scores_raw <- fastTextR::ft_predict(model$ft_model, txts, k=151)
-    
-    sorted_preds <- sort_by_emojis_baseR(
-        emoji_scores_raw, 
-        model$emoji_lookup
-    )
+    # ... some dirty hotfix, cause it's R
+    #emoji_scores_raw <- fastTextR::ft_predict(model$ft_model, txts, k=151)
+    emoji_scores_raw <- ft_hotfix_predict(txts)
+
+    emoji_scores_raw$int_label <- as.integer(substring(emoji_scores_raw$label, 10))
+    sorted_preds <- emoji_scores_raw[order(emoji_scores_raw$id, emoji_scores_raw$int_label),]
     
     pred_matrix <- as.matrix(
         long_to_wide_baseR(sorted_preds)
