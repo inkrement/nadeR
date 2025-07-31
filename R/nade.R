@@ -51,9 +51,9 @@ nadeR_load <- function() {
     model$update_model(
         structure(
             list(
-                ft_model = fastTextR::ft_load(
-                    system.file("data", "nade_250k_hp.ftz", package = "nadeR")
-                ),
+                #ft_model = fastTextR::ft_load(
+                #    system.file("data", "nade_250k_hp.ftz", package = "nadeR")
+                #),
                 emoji_lookup = dplyr::mutate(
                     jsonlite::stream_in(
                         file(system.file("data", "emoji_frequencies.jsonl", package = "nadeR")), 
@@ -130,7 +130,6 @@ ft_hotfix_predict <- function(txts) {
 #' model <- nadeR_load()
 #' nadeR_predict(model, "I am happy")
 #' 
-##' @importFrom fastTextR ft_predict
 #' @export 
 nadeR_predict <- function(model, txts) {
     # preprocessing
@@ -181,7 +180,7 @@ nadeR_predict <- function(model, txts) {
 nade <- function() {
     model <- new.env(parent = emptyenv())
 
-    model$ft_model <- NULL
+    #model$ft_model <- NULL
     model$emoji_lookup <- NULL 
     model$m_anger <- NULL
     model$m_fear <- NULL
@@ -195,7 +194,7 @@ nade <- function() {
     model$update_model <- function(new_model) {
         self <- parent.env(environment())$model
 
-        self$ft_model <- new_model$ft_model
+        #self$ft_model <- new_model$ft_model
         self$emoji_lookup <- new_model$emoji_lookup
 
         self$m_anger <- new_model$m_anger
@@ -222,9 +221,9 @@ nade <- function() {
     model$predict <- function(txts) {
         self <- parent.env(environment())$model
 
-        if (is.null(self$ft_model)) {
-            stop("Model not loaded. Please run `load()` first.")
-        }
+        #if (is.null(self$ft_model)) {
+        #    stop("Model not loaded. Please run `load()` first.")
+        #}
         
         nadeR_predict(self, txts)
     }
